@@ -1,0 +1,1214 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperApp - Con Escáner Funcional</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #564fd8;
+            --secondary: #FF6584;
+            --accent: #36D1DC;
+            --light: #F8F9FC;
+            --dark: #2D2B55;
+            --success: #42BA96;
+            --warning: #FFC107;
+            --danger: #DF4759;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --border-radius: 16px;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            --smooth-transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border-radius: var(--border-radius);
+            color: white;
+            box-shadow: var(--card-shadow);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .app-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--light);
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .tab {
+            padding: 18px 25px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            transition: var(--smooth-transition);
+            font-weight: 600;
+            color: var(--gray);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            background: white;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 4px 4px 0 0;
+        }
+
+        .screen {
+            padding: 30px;
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--dark);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .barcode-section {
+            background: var(--light);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .scanner-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #qr-reader {
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .scanner-placeholder {
+            width: 100%;
+            height: 250px;
+            background: #333;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanner-placeholder::after {
+            content: '';
+            position: absolute;
+            height: 5px;
+            width: 100%;
+            background: var(--secondary);
+            animation: scan 2s infinite linear;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .scanner-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .scanner-button {
+            padding: 10px 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--smooth-transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .scanner-button:hover {
+            background: var(--primary-dark);
+        }
+
+        .scanner-button.stop {
+            background: var(--danger);
+        }
+
+        .scanner-button.stop:hover {
+            background: #c82333;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--gray-light);
+            border-radius: 10px;
+            font-size: 16px;
+            transition: var(--smooth-transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        }
+
+        .discount-input {
+            display: none;
+        }
+
+        .discount-input.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: var(--smooth-transition);
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background-color: #389e7f;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .cart-items {
+            margin: 25px 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            background: white;
+            border-bottom: 1px solid var(--gray-light);
+            transition: var(--smooth-transition);
+        }
+
+        .cart-item:hover {
+            background: #fafbff;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+        }
+
+        .cart-item-details {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .cart-item-price {
+            font-weight: 700;
+            color: var(--primary);
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+
+        .totals-card {
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin: 25px 0;
+            box-shadow: var(--card-shadow);
+        }
+
+        .totals-card p {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            font-size: 1.1rem;
+        }
+
+        .total-amount {
+            font-size: 1.8rem !important;
+            font-weight: 700;
+            margin-top: 15px !important;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .purchase {
+            background: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .purchase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--light);
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .purchase-date {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .purchase-totals {
+            display: flex;
+            gap: 20px;
+        }
+
+        .purchase-total, .purchase-savings {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .purchase-total {
+            background: rgba(66, 186, 150, 0.1);
+            color: var(--success);
+        }
+
+        .purchase-savings {
+            background: rgba(255, 107, 132, 0.1);
+            color: var(--secondary);
+        }
+
+        .purchase-items {
+            padding: 20px;
+        }
+
+        .purchase-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .purchase-item:last-child {
+            border-bottom: none;
+        }
+
+        .purchase-item-info {
+            flex: 1;
+        }
+
+        .purchase-item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .purchase-item-details {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .message {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .success {
+            background-color: #e6f7f2;
+            color: var(--success);
+            border: 1px solid #b6e6d9;
+        }
+
+        .error {
+            background-color: #fce8e8;
+            color: var(--danger);
+            border: 1px solid #f5c6cb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--gray-light);
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .purchase-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .purchase-totals {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .scanner-buttons {
+                flex-direction: column;
+            }
+            
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .cart-item-price {
+                margin-left: 0;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-primary {
+            background: rgba(108, 99, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .badge-success {
+            background: rgba(66, 186, 150, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--warning);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: var(--smooth-transition);
+            width: auto;
+        }
+
+        .action-btn:hover {
+            background: var(--gray-light);
+            color: var(--danger);
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .product-database {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-shopping-cart"></i> SuperApp</h1>
+            <p>Gestiona tus compras y ahorra con promociones especiales</p>
+        </header>
+
+        <div class="app-container">
+            <div class="tabs">
+                <div class="tab active" data-screen="carrito">
+                    <i class="fas fa-shopping-basket"></i> Carrito
+                </div>
+                <div class="tab" data-screen="historial">
+                    <i class="fas fa-history"></i> Historial
+                </div>
+            </div>
+
+            <!-- Pantalla de Carrito -->
+            <div id="carritoScreen" class="screen active">
+                <h2><i class="fas fa-plus-circle"></i> Agregar Productos</h2>
+                
+                <div id="messageContainer"></div>
+                
+                <!-- Sección de escaneo de código de barras -->
+                <div class="barcode-section">
+                    <p><i class="fas fa-camera"></i> Escáner de código de barras</p>
+                    <button id="startScanner" class="btn">
+                        <i class="fas fa-camera"></i> Iniciar escáner
+                    </button>
+                    
+                    <div class="scanner-container" id="scannerContainer" style="display: none;">
+                        <div id="qr-reader"></div>
+                        <div class="scanner-buttons">
+                            <button id="stopScanner" class="scanner-button stop">
+                                <i class="fas fa-stop-circle"></i> Detener escáner
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="barcode"><i class="fas fa-barcode"></i> Código de Barras:</label>
+                        <input type="text" id="barcode" placeholder="Código escaneado o ingresado manualmente">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="name"><i class="fas fa-tag"></i> Nombre:</label>
+                        <input type="text" id="name" placeholder="Nombre del producto" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="price"><i class="fas fa-dollar-sign"></i> Precio:</label>
+                        <input type="number" id="price" placeholder="Precio" min="0" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity"><i class="fas fa-calculator"></i> Cantidad:</label>
+                        <input type="number" id="quantity" placeholder="Cantidad" min="1" value="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="promo"><i class="fas fa-percent"></i> Promoción:</label>
+                        <select id="promo">
+                            <option value="none">Sin promo</option>
+                            <option value="2x1">2x1</option>
+                            <option value="second_percent">2da al %</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group discount-input" id="discountInput">
+                        <label for="discount"><i class="fas fa-tag"></i> Porcentaje de Descuento:</label>
+                        <input type="number" id="discount" placeholder="%" min="0" max="100" value="50">
+                    </div>
+                </div>
+                
+                <button id="addToCart" class="btn">
+                    <i class="fas fa-cart-plus"></i> Agregar al Carrito
+                </button>
+                
+                <div id="cartItemsContainer">
+                    <h2 style="margin-top: 30px;"><i class="fas fa-shopping-basket"></i> Productos en el Carrito</h2>
+                    
+                    <div id="cartItems" class="cart-items">
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-basket"></i>
+                            <p>No hay productos en el carrito</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="totals-card">
+                    <p>Subtotal: <span id="subtotalAmount">$0.00</span></p>
+                    <p>Ahorro: <span id="savingsAmount">$0.00</span></p>
+                    <p class="total-amount">Total: <span id="totalAmount">$0.00</span></p>
+                </div>
+                
+                <button id="finishPurchase" class="btn btn-success">
+                    <i class="fas fa-check-circle"></i> Finalizar Compra
+                </button>
+            </div>
+
+            <!-- Pantalla de Historial -->
+            <div id="historialScreen" class="screen">
+                <h2><i class="fas fa-history"></i> Historial de Compras</h2>
+                
+                <button id="refreshHistory" class="btn btn-warning">
+                    <i class="fas fa-sync-alt"></i> Actualizar Historial
+                </button>
+                
+                <div id="historyContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <p>No hay compras registradas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Base de datos simulada de productos -->
+    <div class="product-database">
+        <!-- Productos de ejemplo con sus códigos de barras -->
+        <div data-barcode="123456789012" data-name="Arroz 1kg" data-price="2.50"></div>
+        <div data-barcode="234567890123" data-name="Aceite 1L" data-price="4.80"></div>
+        <div data-barcode="345678901234" data-name="Leche 1L" data-price="1.20"></div>
+        <div data-barcode="456789012345" data-name="Azúcar 1kg" data-price="1.80"></div>
+        <div data-barcode="567890123456" data-name="Harina 1kg" data-price="1.50"></div>
+        <div data-barcode="678901234567" data-name="Fideos 500g" data-price="1.00"></div>
+        <div data-barcode="789012345678" data-name="Galletas 300g" data-price="2.00"></div>
+        <div data-barcode="890123456789" data-name="Café 250g" data-price="3.50"></div>
+        <div data-barcode="901234567890" data-name="Yogur 1L" data-price="2.20"></div>
+        <div data-barcode="012345678901" data-name="Queso 500g" data-price="5.50"></div>
+    </div>
+
+    <script>
+        // Clase para gestionar la base de datos local (simulada)
+        class Database {
+            constructor() {
+                this.purchases = JSON.parse(localStorage.getItem('purchases')) || [];
+                this.nextPurchaseId = parseInt(localStorage.getItem('nextPurchaseId')) || 1;
+            }
+
+            savePurchase(purchase) {
+                purchase.id = this.nextPurchaseId++;
+                purchase.date = new Date().toISOString();
+                this.purchases.unshift(purchase); // Agregar al inicio para tener las más recientes primero
+                
+                // Guardar en localStorage
+                localStorage.setItem('purchases', JSON.stringify(this.purchases));
+                localStorage.setItem('nextPurchaseId', this.nextPurchaseId.toString());
+                
+                return purchase.id;
+            }
+
+            getPurchases() {
+                return this.purchases;
+            }
+
+            clearPurchases() {
+                this.purchases = [];
+                this.nextPurchaseId = 1;
+                localStorage.removeItem('purchases');
+                localStorage.removeItem('nextPurchaseId');
+            }
+        }
+
+        // Clase para gestionar el carrito de compras
+        class CartManager {
+            constructor() {
+                this.items = [];
+                this.subtotal = 0;
+                this.total = 0;
+                this.savings = 0;
+            }
+
+            addItem(product) {
+                this.items.push(product);
+                this.calculateTotals();
+            }
+
+            removeItem(index) {
+                this.items.splice(index, 1);
+                this.calculateTotals();
+            }
+
+            clearCart() {
+                this.items = [];
+                this.subtotal = 0;
+                this.total = 0;
+                this.savings = 0;
+            }
+
+            calculateTotals() {
+                this.subtotal = 0;
+                this.total = 0;
+                this.savings = 0;
+                
+                this.items.forEach(item => {
+                    this.subtotal += item.price * item.quantity;
+                    this.total += item.subtotal;
+                    this.savings += item.savings;
+                });
+            }
+        }
+
+        // Clase para gestionar las pantallas
+        class ScreenManager {
+            constructor() {
+                this.currentScreen = 'carrito';
+                this.init();
+            }
+
+            init() {
+                const tabs = document.querySelectorAll('.tab');
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const screen = tab.getAttribute('data-screen');
+                        this.showScreen(screen);
+                    });
+                });
+            }
+
+            showScreen(screenName) {
+                // Ocultar todas las pantallas
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                
+                // Desactivar todas las pestañas
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Mostrar la pantalla seleccionada
+                document.getElementById(screenName + 'Screen').classList.add('active');
+                
+                // Activar la pestaña seleccionada
+                document.querySelector(`.tab[data-screen="${screenName}"]`).classList.add('active');
+                
+                this.currentScreen = screenName;
+                
+                // Si es la pantalla de historial, actualizarla
+                if (screenName === 'historial') {
+                    app.updateHistoryScreen();
+                }
+            }
+        }
+
+        // Clase para gestionar el escáner de códigos de barras
+        class BarcodeScanner {
+            constructor() {
+                this.scanner = null;
+                this.isScanning = false;
+                this.init();
+            }
+
+            init() {
+                // Event listeners para los botones del escáner
+                document.getElementById('startScanner').addEventListener('click', () => {
+                    this.startScanner();
+                });
+
+                document.getElementById('stopScanner').addEventListener('click', () => {
+                    this.stopScanner();
+                });
+            }
+
+            startScanner() {
+                if (this.isScanning) return;
+                
+                const scannerContainer = document.getElementById('scannerContainer');
+                scannerContainer.style.display = 'block';
+                
+                // Configurar el escáner
+                this.scanner = new Html5Qrcode("qr-reader");
+                
+                this.scanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 150 } },
+                    (decodedText, decodedResult) => {
+                        // Código escaneado con éxito
+                        this.onScanSuccess(decodedText, decodedResult);
+                    },
+                    (errorMessage) => {
+                        // Manejo de errores, pero ignoramos los errores de análisis
+                    }
+                ).catch(err => {
+                    console.error("Error al iniciar el escáner:", err);
+                    scannerContainer.style.display = 'none';
+                    app.showMessage('Error al acceder a la cámara. Asegúrate de permitir el acceso.', 'error');
+                });
+                
+                this.isScanning = true;
+            }
+
+            stopScanner() {
+                if (!this.isScanning) return;
+                
+                this.scanner.stop().then(() => {
+                    this.isScanning = false;
+                    document.getElementById('scannerContainer').style.display = 'none';
+                    this.scanner.clear();
+                }).catch(err => {
+                    console.error("Error al detener el escáner:", err);
+                });
+            }
+
+            onScanSuccess(decodedText, decodedResult) {
+                // Detener el escáner después de un escaneo exitoso
+                this.stopScanner();
+                
+                // Rellenar el campo de código de barras con el valor escaneado
+                document.getElementById('barcode').value = decodedText;
+                
+                // Buscar si el producto existe en la base de datos simulada
+                this.lookupProduct(decodedText);
+                
+                app.showMessage('Código de barras escaneado correctamente', 'success');
+            }
+
+            lookupProduct(barcode) {
+                // Buscar en la base de datos simulada
+                const productElements = document.querySelectorAll('.product-database > div');
+                
+                for (let element of productElements) {
+                    if (element.getAttribute('data-barcode') === barcode) {
+                        // Rellenar automáticamente los campos con la información del producto
+                        document.getElementById('name').value = element.getAttribute('data-name');
+                        document.getElementById('price').value = element.getAttribute('data-price');
+                        document.getElementById('quantity').value = 1;
+                        document.getElementById('promo').selectedIndex = 0;
+                        document.getElementById('discountInput').classList.remove('visible');
+                        
+                        app.showMessage('Producto encontrado en la base de datos', 'success');
+                        return;
+                    }
+                }
+                
+                // Si no se encuentra el producto, solo llenar el código de barras
+                app.showMessage('Producto no encontrado en la base de datos. Complete manualmente.', 'error');
+            }
+        }
+
+        // Clase principal de la aplicación
+        class SuperApp {
+            constructor() {
+                this.db = new Database();
+                this.cart = new CartManager();
+                this.screenManager = new ScreenManager();
+                this.barcodeScanner = new BarcodeScanner();
+                
+                this.initEventListeners();
+                this.updateCartDisplay();
+            }
+
+            initEventListeners() {
+                // Selector de promoción
+                document.getElementById('promo').addEventListener('change', (e) => {
+                    const discountInput = document.getElementById('discountInput');
+                    if (e.target.value === 'second_percent') {
+                        discountInput.classList.add('visible');
+                    } else {
+                        discountInput.classList.remove('visible');
+                    }
+                });
+
+                // Agregar al carrito
+                document.getElementById('addToCart').addEventListener('click', () => {
+                    this.addToCart();
+                });
+
+                // Finalizar compra
+                document.getElementById('finishPurchase').addEventListener('click', () => {
+                    this.finishPurchase();
+                });
+
+                // Actualizar historial
+                document.getElementById('refreshHistory').addEventListener('click', () => {
+                    this.updateHistoryScreen();
+                });
+            }
+
+            addToCart() {
+                // Obtener valores del formulario
+                const barcode = document.getElementById('barcode').value;
+                const name = document.getElementById('name').value;
+                const price = parseFloat(document.getElementById('price').value);
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const promo = document.getElementById('promo').value;
+                const discount = promo === 'second_percent' ? parseInt(document.getElementById('discount').value) : 0;
+
+                // Validaciones básicas
+                if (!name || isNaN(price) || price <= 0 || isNaN(quantity) || quantity <= 0) {
+                    this.showMessage('Por favor, complete todos los campos correctamente.', 'error');
+                    return;
+                }
+
+                // Calcular subtotal y ahorro según la promoción
+                let subtotal, savings;
+                
+                switch(promo) {
+                    case 'none':
+                        subtotal = price * quantity;
+                        savings = 0;
+                        break;
+                        
+                    case '2x1':
+                        const freeItems = Math.floor(quantity / 2);
+                        subtotal = price * (quantity - freeItems);
+                        savings = price * freeItems;
+                        break;
+                        
+                    case 'second_percent':
+                        const pairs = Math.floor(quantity / 2);
+                        const remainder = quantity % 2;
+                        const discountAmount = price * (discount / 100);
+                        subtotal = (pairs * (2 * price - discountAmount)) + (remainder * price);
+                        savings = pairs * discountAmount;
+                        break;
+                }
+
+                // Crear objeto producto
+                const product = {
+                    barcode,
+                    name,
+                    price,
+                    quantity,
+                    promo,
+                    discount: promo === 'second_percent' ? discount : null,
+                    subtotal: parseFloat(subtotal.toFixed(2)),
+                    savings: parseFloat(savings.toFixed(2))
+                };
+
+                // Agregar al carrito
+                this.cart.addItem(product);
+                
+                // Actualizar la visualización del carrito
+                this.updateCartDisplay();
+                
+                // Limpiar formulario (excepto código de barras)
+                document.getElementById('name').value = '';
+                document.getElementById('price').value = '';
+                document.getElementById('quantity').value = '1';
+                document.getElementById('promo').selectedIndex = 0;
+                document.getElementById('discountInput').classList.remove('visible');
+                
+                this.showMessage('Producto agregado al carrito.', 'success');
+            }
+
+            updateCartDisplay() {
+                const cartItemsContainer = document.getElementById('cartItems');
+                const totalAmountElement = document.getElementById('totalAmount');
+                const subtotalAmountElement = document.getElementById('subtotalAmount');
+                const savingsAmountElement = document.getElementById('savingsAmount');
+                
+                // Actualizar totales
+                totalAmountElement.textContent = `$${this.cart.total.toFixed(2)}`;
+                subtotalAmountElement.textContent = `$${this.cart.subtotal.toFixed(2)}`;
+                savingsAmountElement.textContent = `$${this.cart.savings.toFixed(2)}`;
+                
+                // Limpiar contenedor
+                cartItemsContainer.innerHTML = '';
+                
+                // Mostrar items del carrito
+                if (this.cart.items.length === 0) {
+                    cartItemsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-basket"></i>
+                            <p>No hay productos en el carrito</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                this.cart.items.forEach((item, index) => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'cart-item';
+                    itemElement.innerHTML = `
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-details">
+                                ${item.quantity} x $${item.price.toFixed(2)} 
+                                <span class="badge ${this.getPromoBadgeClass(item)}">${this.getPromoText(item)}</span>
+                                ${item.barcode ? `<br><small>Código: ${item.barcode}</small>` : ''}
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div class="cart-item-price">$${item.subtotal.toFixed(2)}</div>
+                            <button class="action-btn" onclick="app.removeFromCart(${index})">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    cartItemsContainer.appendChild(itemElement);
+                });
+            }
+
+            getPromoText(item) {
+                switch(item.promo) {
+                    case 'none': return 'Sin promo';
+                    case '2x1': return '2x1';
+                    case 'second_percent': return `2da al ${item.discount}%`;
+                    default: return '';
+                }
+            }
+
+            getPromoBadgeClass(item) {
+                switch(item.promo) {
+                    case 'none': return 'badge-primary';
+                    case '2x1': return 'badge-success';
+                    case 'second_percent': return 'badge-warning';
+                    default: return '';
+                }
+            }
+
+            removeFromCart(index) {
+                this.cart.removeItem(index);
+                this.updateCartDisplay();
+                this.showMessage('Producto eliminado del carrito.', 'success');
+            }
+
+            finishPurchase() {
+                if (this.cart.items.length === 0) {
+                    this.showMessage('El carrito está vacío.', 'error');
+                    return;
+                }
+                
+                // Crear objeto de compra
+                const purchase = {
+                    total: this.cart.total,
+                    savings: this.cart.savings,
+                    items: [...this.cart.items]
+                };
+                
+                // Guardar en la base de datos
+                this.db.savePurchase(purchase);
+                
+                // Limpiar carrito
+                this.cart.clearCart();
+                this.updateCartDisplay();
+                
+                this.showMessage('Compra finalizada correctamente.', 'success');
+            }
+
+            updateHistoryScreen() {
+                const historyContainer = document.getElementById('historyContainer');
+                const purchases = this.db.getPurchases();
+                
+                // Limpiar contenedor
+                historyContainer.innerHTML = '';
+                
+                if (purchases.length === 0) {
+                    historyContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-receipt"></i>
+                            <p>No hay compras registradas</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                purchases.forEach(purchase => {
+                    const purchaseElement = document.createElement('div');
+                    purchaseElement.className = 'purchase';
+                    
+                    const date = new Date(purchase.date);
+                    const formattedDate = date.toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    purchaseElement.innerHTML = `
+                        <div class="purchase-header">
+                            <div class="purchase-date">
+                                <i class="far fa-calendar-alt"></i> ${formattedDate}
+                            </div>
+                            <div class="purchase-totals">
+                                <div class="purchase-total">
+                                    <i class="fas fa-receipt"></i> $${purchase.total.toFixed(2)}
+                                </div>
+                                <div class="purchase-savings">
+                                    <i class="fas fa-piggy-bank"></i> $${purchase.savings.toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="purchase-items">
+                            ${purchase.items.map(item => `
+                                <div class="purchase-item">
+                                    <div class="purchase-item-info">
+                                        <div class="purchase-item-name">${item.name}</div>
+                                        <div class="purchase-item-details">
+                                            ${item.quantity} x $${item.price.toFixed(2)} | 
+                                            ${this.getPromoText(item)} | 
+                                            Subtotal: $${item.subtotal.toFixed(2)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    historyContainer.appendChild(purchaseElement);
+                });
+            }
+
+            showMessage(text, type) {
+                const messageContainer = document.getElementById('messageContainer');
+                const message = document.createElement('div');
+                message.className = `message ${type}`;
+                
+                const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+                message.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+                
+                messageContainer.innerHTML = '';
+                messageContainer.appendChild(message);
+                
+                // Eliminar el mensaje después de 3 segundos
+                setTimeout(() => {
+                    message.remove();
+                }, 3000);
+            }
+        }
+
+        // Inicializar la aplicación
+        const app = new SuperApp();
+    </script>
+</body>
+</html>
